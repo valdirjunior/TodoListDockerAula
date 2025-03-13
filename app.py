@@ -4,8 +4,6 @@ import os
 import logging
 import sqlite3
 
-import redis
-cache = redis.Redis(host='localhost', port=6379, db=0)
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -64,18 +62,6 @@ def complete_task(id):
     con.commit()
     con.close()
     return redirect('/')
-
-@app.route('/')
-def index():
-    tasks = cache.get('tasks')
-    if not tasks:
-        con = connect_db()
-        cur = con.cursor()
-        cur.execute("SELECT * FROM tasks")
-        tasks = cur.fetchall()
-        con.close()
-        cache.set('tasks', str(tasks), ex=30)  # Expira em 30s
-    return render_template("index.html", tasks=eval(tasks))
 
 if __name__ == "__main__":
     app.run(debug=True)
